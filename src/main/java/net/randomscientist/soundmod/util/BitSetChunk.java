@@ -1,5 +1,6 @@
 package net.randomscientist.soundmod.util;
 
+import net.jpountz.lz4.LZ4Factory;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
 import net.minecraft.util.math.Vec3i;
@@ -14,13 +15,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class BitSetChunk {
-    private final int sides = 16;
-    private final int height = 320;
-    private final int SectionHeight = 16;
-    private final int volume = sides^2*height;
-    private final ArrayList<Integer> fullSection = (ArrayList<Integer>) Arrays.asList(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1);
-    private final ArrayList<Integer> emptySection = (ArrayList<Integer>) Arrays.asList(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
-    private ArrayList<Integer> data = new ArrayList<Integer>();
+    LZ4Factory factory = LZ4Factory.fastestInstance();
+    private final ArrayList<Integer> data = new ArrayList<Integer>();
     private Vec3i indexToSectionPos(int i) {
         return new Vec3i(i&0xf,i&0xf00,i&0xf0 );
     }
@@ -34,25 +30,42 @@ public class BitSetChunk {
         return new Vec3i(i&0xf,i>>>8,i&0xf0 );
     }
     public void ingestChunk(WorldChunk chunk) {
-        ChunkSection[] sectionArray = chunk.getSectionArray();
-        for(int i = 0; i<(height/SectionHeight); i++) {
-            ChunkSection section = sectionArray[i];
-            if(section.isEmpty() || section == null){
-                data.addAll(emptySection);
-                continue;
-            }
-            if(4096==((ChunkSectionAccessor) section).nonEmptyBlocks()) {
-                data.addAll(fullSection);
-                continue;
-            }
-            PalettedContainer<BlockState> states = section.getBlockStateContainer();
-            PalettedContainerAccessor<BlockState> statesGettable = ((PalettedContainerAccessor<BlockState>) states);
-            for(int j = 0; j< 16*16*16;j++) {
-                Material bl = statesGettable.invokeGet(j).getMaterial();
-                // data.add(i<<8+j,(bl.isSolid()||bl.blocksLight()));
-            }
+        final ArrayList<Integer> fullSection = new ArrayList(Arrays.asList(-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1));
+        final ArrayList<Integer> emptySection = new ArrayList(Arrays.asList(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0));
 
+        if(!(chunk ==null)) {
+            ChunkSection[] sectionArray = chunk.getSectionArray();
+            for (int i = 0; i < (320/16); i++) {
+                ChunkSection section = sectionArray[i];
+                if (section.isEmpty()) {
+                    data.addAll(emptySection);
+                    continue;
+                }
+                if (4096 == ((ChunkSectionAccessor) section).nonEmptyBlocks()) {
+                    data.addAll(fullSection);
+                    continue;
+                }
+                PalettedContainer<BlockState> states = section.getBlockStateContainer();
+                PalettedContainerAccessor<BlockState> statesGettable = ((PalettedContainerAccessor<BlockState>) states);
+                for (int j = 0; j < 16 * 8; j++) {
+                    int s = 0;
+                    for (int k = 0; k < 32; k++) {
+                        Material bl=statesGettable.invokeGet(j+k).getMaterial();
+                        int ref=(bl.isSolid()||bl.blocksLight())?1:0;
+                        s = s << 1 | ref;
+                    }
+                    data.add(s);
+                }
+
+            }
         }
-
+        else {
+            for(int i =0; i<(320 / 16); i++){
+                data.addAll(emptySection);
+            }
+        }
+    }
+    public ArrayList<Integer> getData() {
+        return this.data;
     }
 }
