@@ -1,5 +1,5 @@
 # BST-Sound-MC
-# A 1.19+ Fabric mod that attempts to implement the [BST sound transport algorithm](http://kunzhou.net/zjugaps/bst/bst.pdf)
+# A 1.19+ Fabric mod that attempts to implement the [BST sound transport algorithm](http://kunzhou.net/zjugaps/bst/bst.pdf) in Minecraft
 
 Structurally, the code will (probably) have 4 main segments:
 Some sort of hook to SoundSystem that matches sources with their IR data from the path tracer and uses the CONV_REVERB OpenAL effect to convolve the source audio with its IR
