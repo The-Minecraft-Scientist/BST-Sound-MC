@@ -12,14 +12,14 @@ public class Scene {
     private SceneChunk[] chunks;
     final ClientChunkManager cm;
     final PlayerEntity player;
-    final Pos2i size = new Pos2i(0,0);
+    private int size = 4;
     final Pos2i baseChunk = new Pos2i(0,0);
     private ArrayList<Pos2i> loadpool;
-    public Scene(ClientChunkManager cm, PlayerEntity player,int sizeX, int sizeZ) {
+    private ArrayList<Pos2i> loaded;
+    public Scene(ClientChunkManager cm, PlayerEntity player,int size) {
         this.cm = cm;
         this.player = player;
-        this.size.setX(sizeX);
-        this.size.setY(sizeZ);
+        this.size = size;
     }
     public void update() {
         BlockPos playerPos = player.getBlockPos();
@@ -27,6 +27,14 @@ public class Scene {
         playerChunk.setX(playerPos.getX()>>4);
         playerChunk.setZ(playerPos.getZ()>>4);
         if(!(playerChunk.getZ() == baseChunk.getZ() && playerChunk.getX() == baseChunk.getX())) {
+            for(int i =baseChunk.getX()-size; i<baseChunk.getX()+size; i++) {
+                for(int j = baseChunk.getZ()-size;j< baseChunk.getZ()+size; j++) {
+                    Pos2i chunk = new Pos2i(i,j);
+                    if(!(loaded.contains(chunk))) {
+                        loadpool.add(chunk);
+                    }
+                }
+            }
         }
     }
 
