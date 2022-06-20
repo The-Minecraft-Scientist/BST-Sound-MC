@@ -27,8 +27,8 @@ public class Scene {
         playerChunk.setX(playerPos.getX()>>4);
         playerChunk.setZ(playerPos.getZ()>>4);
         if(!(playerChunk.getZ() == baseChunk.getZ() && playerChunk.getX() == baseChunk.getX())) {
-            for(int i =baseChunk.getX()-size; i<baseChunk.getX()+size; i++) {
-                for(int j = baseChunk.getZ()-size;j< baseChunk.getZ()+size; j++) {
+            for(int i =baseChunk.x-size; i<baseChunk.x+size; i++) {
+                for(int j = baseChunk.y-size;j< baseChunk.y+size; j++) {
                     Pos2i chunk = new Pos2i(i,j);
                     if(!(loaded.contains(chunk))) {
                         loadpool.add(chunk);

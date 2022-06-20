@@ -1,8 +1,8 @@
 package net.randomscientist.soundmod.util;
 
 public class Pos2i {
-    private int x;
-    private int y;
+    public int x;
+    public int y;
     public Pos2i(int x, int y) {
         this.x = x;
         this.y = y;
@@ -33,4 +33,11 @@ public class Pos2i {
     public void setZ(int z) {
         this.y = z;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        Pos2i b = (Pos2i) obj;
+        return b.getX()==this.x&&b.getY()==this.y;
+    }
 }
+yeah
