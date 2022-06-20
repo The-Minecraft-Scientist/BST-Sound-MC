@@ -40,4 +40,3 @@ public class Pos2i {
         return b.getX()==this.x&&b.getY()==this.y;
     }
 }
-yeah
