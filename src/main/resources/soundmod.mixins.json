@@ -8,7 +8,8 @@
   "client": [
     "SoundSystemMixin",
     "ChunkSectionAccessor",
-    "PalettedContainerAccessor"
+    "PalettedContainerAccessor",
+    "WorldChunkMixin"
   ],
   "injectors": {
     "defaultRequire": 1

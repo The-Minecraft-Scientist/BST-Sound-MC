@@ -4,10 +4,12 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientChunkManager;
-import net.minecraft.world.chunk.WorldChunk;
-import net.randomscientist.soundmod.util.SceneChunk;
+import net.minecraft.entity.player.PlayerEntity;
+import net.randomscientist.soundmod.scene.Scene;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
 
 public class ExampleMod implements ModInitializer {
 	// This logger is used to write text to the console and the log file.
@@ -22,11 +24,11 @@ public class ExampleMod implements ModInitializer {
 		// Proceed with mild caution.
 
 		ClientTickEvents.END_WORLD_TICK.register((listener) -> {
-			SceneChunk dat = new SceneChunk();
 			ClientChunkManager cm = MinecraftClient.getInstance().world.getChunkManager();
-			WorldChunk chunk = (WorldChunk) cm.getChunk(1,1);
-			//dat.ingestChunk(chunk);
-			// LOGGER.info("{}",dat.getData());
+			PlayerEntity player = MinecraftClient.getInstance().player;
+			Scene scene = new Scene(cm,player,2);
+			ArrayList<Integer> data = scene.fullScene();
+
 		});
 	}
 
